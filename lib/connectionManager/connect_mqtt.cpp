@@ -8,8 +8,7 @@
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-// TODO: Pending create the task to connect to the MQTT broker
-// TODO: Pending testing the connection to the MQTT broker
+// TODO: Pending send and receive MQTT messages
 void callback(char *topicCommand, byte *payload, unsigned int length)
 {
     Serial.print("Message arrived in topic: ");
@@ -52,13 +51,56 @@ void connect_mqtt(void *parameter)
 
         while (!client.connected() && millis() - startAttemptTime < MQTT_TIMEOUT)
         {
-            if (!client.connected())
+            if (client.connect(CLIENT_NAME, MQTT_USERNAME, MQTT_PASSWORD))
+            {
+                Serial.println("[MQTT] - Public emqx mqtt broker connected");
+            }
+            else
             {
                 vTaskDelay(5000 / portTICK_PERIOD_MS);
                 Serial.println("[MQTT] - Connection failed");
                 continue;
             }
         }
-        Serial.println("[MQTT] - Connected to the MQTT broker");
+
+        if (client.connected())
+        {
+            Serial.println("[MQTT] - Connected to the MQTT broker");
+        }
+
+        if (!espClient.connected())
+        {
+            Serial.println("[MQTT] - espClient not connected");
+        }
+
+        // TODO: Put subscription code here
+    }
+}
+
+void send_data(void *parameter)
+{
+    while (true)
+    {
+        if (client.connected() == false)
+        {
+            vTaskDelay(5000 / portTICK_PERIOD_MS);
+            continue;
+        }
+
+        JsonDocument doc;
+        String payload = "test data";
+
+        // float watts = pzemConsumoCasa.power();
+        // float amps = pzemConsumoCasa.current();
+        // int volts = pzemConsumoCasa.voltage();
+
+        // jsonDoc["corriente"] = amps;
+        // jsonDoc["voltaje"] = volts;
+        // jsonDoc["potencia"] = watts;
+
+        serializeJson(doc, payload);
+        client.publish(TOPIC_STATE, (char *)payload.c_str());
+
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }

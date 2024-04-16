@@ -1,5 +1,6 @@
 #include "wifi_config.h"
 #include <WiFi.h>
+
 #define WIFI_TIMEOUT 5000
 
 void connect_wifi(void *parameter)
