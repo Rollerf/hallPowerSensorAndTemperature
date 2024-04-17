@@ -8,7 +8,11 @@
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-// TODO: Pending send and receive MQTT messages
+PubSubClient get_pub_sub_client()
+{
+    return client;
+}
+
 void callback(char *topicCommand, byte *payload, unsigned int length)
 {
     Serial.print("Message arrived in topic: ");
@@ -39,10 +43,11 @@ void connect_mqtt(void *parameter)
 {
     while (true)
     {
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
+
         if (client.connected())
         {
             Serial.println("[MQTT] - Already connected to the MQTT broker");
-            vTaskDelay(5000 / portTICK_PERIOD_MS);
             continue;
         }
         client.setServer(MQTT_BROKER, MQTT_PORT);
@@ -53,7 +58,7 @@ void connect_mqtt(void *parameter)
         {
             if (client.connect(CLIENT_NAME, MQTT_USERNAME, MQTT_PASSWORD))
             {
-                Serial.println("[MQTT] - Public emqx mqtt broker connected");
+                Serial.println("[MQTT] - Connect to the MQTT broker");
             }
             else
             {
@@ -63,17 +68,7 @@ void connect_mqtt(void *parameter)
             }
         }
 
-        if (client.connected())
-        {
-            Serial.println("[MQTT] - Connected to the MQTT broker");
-        }
-
-        if (!espClient.connected())
-        {
-            Serial.println("[MQTT] - espClient not connected");
-        }
-
-        // TODO: Put subscription code here
+        client.subscribe(TOPIC_COMMAND);
     }
 }
 
